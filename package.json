@@ -1,0 +1,24 @@
+{
+  "name": "reachinbox",
+  "version": "1.0.0",
+  "description": "ReachInbox - Automated cold email outreach & staggered sequence dispatching system",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend"
+  },
+  "keywords": [
+    "outreach",
+    "cold-email",
+    "bullmq",
+    "redis",
+    "nextjs",
+    "nodemailer"
+  ],
+  "author": "Pratyasha Basak",
+  "license": "MIT"
+}
