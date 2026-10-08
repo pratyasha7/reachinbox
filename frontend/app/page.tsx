@@ -143,12 +143,17 @@ export default function OutreachDashboardPage() {
     showToast('Signed out successfully.', 'info');
   };
 
-  const handleToggleSlack = async (connect: boolean, channelName?: string) => {
-    const updated = await api.updateSlackStatus(connect, channelName);
-    setSlackState(updated);
+ const handleToggleSlack = async (connect: boolean) => {
     if (connect) {
-      showToast(`Connected Slack workspace! Dispatch alerts routed to ${updated.channelName || '#outreach-alerts'}.`);
+      const clientId = process.env.NEXT_PUBLIC_SLACK_CLIENT_ID || '10213813073526.12257059299298';
+      const redirectUri = encodeURIComponent('http://localhost:5000/api/slack/oauth/callback');
+      const uId = user?.id || user?.googleId || user?.email || 'default-user';
+
+      // 🚀 Redirect to real Slack authorization server!
+      window.location.href = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=incoming-webhook,chat:write&redirect_uri=${redirectUri}&state=${uId}`;
     } else {
+      await api.updateSlackStatus(false);
+      setSlackState({ isConnected: false });
       showToast('Slack disconnected.', 'info');
     }
   };

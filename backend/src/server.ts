@@ -229,10 +229,12 @@ app.get('/api/emails/:tab', async (req, res) => {
   }
 });
 
-// Slack OAuth & Status
+// Slack OAuth Callback (Saves real webhook row to Neon PostgreSQL)
 app.get('/api/slack/oauth/callback', async (req, res) => {
   try {
     const { code, state } = req.query;
+    console.log('[Slack OAuth] Received callback code from Slack!');
+
     const { data } = await axios.post('https://slack.com/api/oauth.v2.access', null, {
       params: {
         code,
@@ -241,24 +243,41 @@ app.get('/api/slack/oauth/callback', async (req, res) => {
         redirect_uri: config.slack.redirectUri,
       },
     });
+
+    if (!data.ok) {
+      console.error('[Slack Error]:', data.error);
+      return res.redirect('http://localhost:3000?slack=failed');
+    }
+
+    // Ensure valid user in PostgreSQL
+    let user = await prisma.user.findFirst();
+    if (!user) {
+      user = await prisma.user.create({
+        data: { email: 'prattub7@gmail.com', name: 'Pratyasha Basak', googleId: 'default' },
+      });
+    }
+
+    // Save webhook into PostgreSQL SlackIntegration table!
     await prisma.slackIntegration.upsert({
-      where: { userId: String(state) },
+      where: { userId: user.id },
       update: {
         accessToken: data.access_token,
         incomingWebhook: data.incoming_webhook?.url,
         channelName: data.incoming_webhook?.channel,
       },
       create: {
-        userId: String(state),
+        userId: user.id,
         accessToken: data.access_token,
         incomingWebhook: data.incoming_webhook?.url,
         channelName: data.incoming_webhook?.channel,
       },
     });
-    res.redirect('http://localhost:3000?slack=connected');
+
+    console.log(`[Slack] Successfully saved webhook for channel: ${data.incoming_webhook?.channel}`);
+    return res.redirect('http://localhost:3000?slack=connected');
   } catch (err: any) {
     console.error('Slack OAuth error:', err);
-    res.redirect('http://localhost:3000?slack=failed');
+    return res.redirect('http://localhost:3000?slack=failed');
   }
 });
 
