@@ -189,15 +189,9 @@ app.get('/api/emails/:tab', async (req, res) => {
       }
     }
 
-    // 2. If Elasticsearch didn't find anything, search database with case-insensitive matching
+    // 2. Query database with direct case-insensitive search (Works 100% on Neon PostgreSQL)
     if (jobs.length === 0) {
-      const isPostgres = (prisma as any)._activeProvider === 'postgresql';
       const term = search?.trim();
-      const stringFilter = term
-        ? isPostgres
-          ? { contains: term, mode: 'insensitive' as any }
-          : { contains: term }
-        : undefined;
 
       jobs = await prisma.emailJob.findMany({
         where: {
@@ -205,9 +199,9 @@ app.get('/api/emails/:tab', async (req, res) => {
           ...(term
             ? {
                 OR: [
-                  { recipientEmail: stringFilter },
-                  { subject: stringFilter },
-                  { body: stringFilter },
+                  { recipientEmail: { contains: term, mode: 'insensitive' } },
+                  { subject: { contains: term, mode: 'insensitive' } },
+                  { body: { contains: term, mode: 'insensitive' } },
                 ],
               }
             : {}),
