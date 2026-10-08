@@ -283,8 +283,12 @@ app.get('/api/slack/oauth/callback', async (req, res) => {
 
 app.get('/api/slack/status', async (req, res) => {
   try {
-    const item = await prisma.slackIntegration.findUnique({ where: { userId: String(req.query.userId) } });
-    res.json({ isConnected: !!item, channelName: item?.channelName });
+    const userId = req.query.userId ? String(req.query.userId) : undefined;
+    let item = userId ? await prisma.slackIntegration.findUnique({ where: { userId } }) : null;
+    if (!item) {
+      item = await prisma.slackIntegration.findFirst();
+    }
+    res.json({ isConnected: !!item, channelName: item?.channelName || '#outreach-alerts' });
   } catch (err: any) {
     res.json({ isConnected: false });
   }

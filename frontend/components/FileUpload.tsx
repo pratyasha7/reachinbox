@@ -129,19 +129,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
 
   return (
     <div className="space-y-2.5">
-      <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
-          Upload Leads (CSV or TXT)
-        </label>
-        <button
-          type="button"
-          onClick={handleLoadSample}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Load Sample Leads</span>
-        </button>
-      </div>
+      <label className="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 block">
+        Upload Leads (CSV or TXT)
+      </label>
 
       <div
         onDragOver={handleDragOver}

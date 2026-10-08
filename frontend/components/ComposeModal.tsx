@@ -177,28 +177,9 @@ export const ComposeModal: React.FC<ComposeModalProps> = ({
 
           {/* Email Body */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
-                Email Body <span className="text-rose-500">*</span>
-              </label>
-              <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
-                <span>Variables:</span>
-                <button
-                  type="button"
-                  onClick={() => insertVariable('first_name')}
-                  className="rounded bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                >
-                  {'{first_name}'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => insertVariable('company')}
-                  className="rounded bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 font-mono text-[10px] text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-                >
-                  {'{company}'}
-                </button>
-              </div>
-            </div>
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-400 block">
+              Email Body <span className="text-rose-500">*</span>
+            </label>
             <textarea
               rows={4}
               value={body}

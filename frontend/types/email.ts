@@ -28,6 +28,7 @@ export interface UserProfile {
   name: string;
   email: string;
   avatarUrl: string;
+  avatar?: string;
   googleId?: string;
 }
 

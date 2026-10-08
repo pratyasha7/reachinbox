@@ -290,21 +290,22 @@ export const api = {
    * Slack Integration
    */
   async getSlackStatus(userId?: string): Promise<SlackIntegrationState> {
-    if (userId) {
-      try {
-        const res = await fetch(`${API_BASE}/slack/status?userId=${encodeURIComponent(userId)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.isConnected !== undefined) {
-            return {
-              isConnected: data.isConnected,
-              channelName: data.channelName,
-            };
-          }
+    try {
+      const q = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+      const res = await fetch(`${API_BASE}/slack/status${q}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.isConnected !== undefined) {
+          const state: SlackIntegrationState = {
+            isConnected: Boolean(data.isConnected),
+            channelName: data.channelName,
+          };
+          setStored(STORAGE_KEY_SLACK, state);
+          return state;
         }
-      } catch {
-        // Fallback to local storage
       }
+    } catch {
+      // Fallback to local storage
     }
     return getStored<SlackIntegrationState>(STORAGE_KEY_SLACK, {
       isConnected: false,

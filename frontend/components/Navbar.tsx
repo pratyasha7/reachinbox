@@ -85,15 +85,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* User Profile info */}
             <div className="flex items-center gap-3">
               <div className="relative">
-                {/* User Avatar */}
                 <img
-                  src={user.avatarUrl}
-                  alt={user.name}
-                  className="h-8 w-8 rounded-full object-cover ring-2 ring-pink-200/70 dark:ring-pink-900/40"
+                  src={
+                    user.avatarUrl ||
+                    user.avatar ||
+                    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.name || 'User')}&backgroundColor=6366f1,4f46e5,7c3aed`
+                  }
+                  alt={user.name || 'User'}
+                  referrerPolicy="no-referrer"
                   onError={(e) => {
-                    // Fallback to initials if image fails
-                    (e.target as HTMLElement).style.display = 'none';
+                    // Fallback if the Google photo fails: instantly load clean initials!
+                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'PB')}&background=6366f1&color=fff&bold=true`;
                   }}
+                  className="w-8 h-8 rounded-full border border-white/60 object-cover shadow-sm"
                 />
                 <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-950" />
               </div>
@@ -126,13 +130,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       <button
         type="button"
         onClick={() => setShowSlackModal(true)}
-        className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-white/60 dark:border-zinc-800 shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer group"
+        className="fixed bottom-6 right-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/60 dark:border-zinc-800 shadow-lg hover:shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer group"
         title={slack.isConnected ? `Slack Connected: ${slack.channelName || '#outreach-alerts'} (Click to manage)` : "Connect Slack"}
         aria-label="Connect Slack"
       >
         <SlackIcon className="w-6 h-6 transition-transform group-hover:scale-110" />
         {slack.isConnected && (
-          <span className="absolute top-1 right-1 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
+          <span className="absolute top-0.5 right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
         )}
       </button>
 
