@@ -14,8 +14,14 @@ export const config = {
   },
 };
 
-export const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: Number(process.env.REDIS_PORT) || 6379,
-  maxRetriesPerRequest: null,
-});
+// Connect to Upstash Cloud Redis if REDIS_URL is provided, otherwise fallback to localhost
+export const redis = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL, { maxRetriesPerRequest: null })
+  : new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: 6379,
+      maxRetriesPerRequest: null,
+    });
+
+// 🚀 Unlock Redis on Windows so snapshot errors never block BullMQ writes
+redis.config('SET', 'stop-writes-on-bgsave-error', 'no').catch(() => {});
