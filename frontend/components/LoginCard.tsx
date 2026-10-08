@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import Image from 'next/image';
 import { UserProfile } from '@/types/email';
 import { DEFAULT_USER } from '@/lib/api';
-import { SendHorizonal, ShieldCheck, Zap, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Zap, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import Script from 'next/script';
 
 interface LoginCardProps {
@@ -66,8 +67,15 @@ export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
             
             {/* Logo and App Title */}
             <div className="flex flex-col items-center text-center space-y-4 mb-8">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25">
-                <SendHorizonal className="w-7 h-7 -rotate-12" />
+              <div className="relative h-14 w-14 flex items-center justify-center flex-shrink-0">
+                <Image
+                  src="/mailbox.png"
+                  alt="ReachInbox Mailbox"
+                  width={56}
+                  height={56}
+                  className="w-full h-full object-contain"
+                  priority
+                />
               </div>
               <div>
                 <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">

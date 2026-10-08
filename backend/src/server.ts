@@ -113,14 +113,21 @@ app.post('/api/emails/schedule', async (req, res) => {
       console.log(`[Rate Limit Config] Updated sender ${sender.email} limit to ${sender.hourlyLimit}/hr`);
     }
 
-    const start = scheduledStartTime ? new Date(scheduledStartTime).getTime() : Date.now();
-    const delaySec = Number(delayBetweenEmailsSec) || sender.minDelaySeconds || 2;
+    // Read both field names so it NEVER falls back to Date.now()!
+    const rawTime = req.body.scheduledStartTime || req.body.startTime;
+    const start = rawTime ? new Date(rawTime).getTime() : Date.now();
+    const delaySec = Number(delayBetweenEmailsSec) || Number((req.body as any).delaySeconds) || sender.minDelaySeconds || 2;
     const step = delaySec * 1000;
     const scheduledJobs = [];
 
     // 3. Create jobs in DB & BullMQ
     for (let i = 0; i < recipients.length; i++) {
       const runAt = start + i * step;
+      const initialDelayMs = Math.max(0, runAt - Date.now());
+
+      console.log(`[Scheduler] Email #${i + 1} will send at: ${new Date(runAt).toLocaleTimeString()}`);
+      console.log(`[Scheduler] BullMQ holding job for: ${Math.round(initialDelayMs / 1000)} seconds`);
+
       const job = await prisma.emailJob.create({
         data: {
           userId: user.id,
@@ -138,7 +145,7 @@ app.post('/api/emails/schedule', async (req, res) => {
         'send',
         { id: job.id },
         {
-          delay: Math.max(0, runAt - Date.now()),
+          delay: initialDelayMs,
           jobId: job.id,
         }
       );
