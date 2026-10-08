@@ -74,35 +74,37 @@ export default function OutreachDashboardPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Load emails and counts
-  const loadEmails = useCallback(async (tabToLoad: 'scheduled' | 'sent', search: string, targetUserId?: string) => {
+  // Parallel fetch: supports custom parameters AND zero-argument calls for the timer!
+  const loadEmails = useCallback(async (
+    tab: 'scheduled' | 'sent' = activeTab,
+    search: string = debouncedSearch,
+    targetUserId?: string
+  ) => {
+    if (emails.length === 0) setIsLoadingEmails(true);
+    const uId = targetUserId || user?.id || user?.googleId || user?.email;
     try {
-      setIsLoadingEmails(true);
-      const data = await api.getEmails(tabToLoad, search, targetUserId);
-      setEmails(data);
-
-      // Also refresh counts in background
-      const [allScheduled, allSent] = await Promise.all([
-        api.getEmails('scheduled', undefined, targetUserId),
-        api.getEmails('sent', undefined, targetUserId),
+      const [data, scheduled, sent] = await Promise.all([
+        api.getEmails(tab, search, uId),
+        api.getEmails('scheduled', undefined, uId),
+        api.getEmails('sent', undefined, uId),
       ]);
-      setScheduledCount(allScheduled.length);
-      setSentCount(allSent.length);
+      setEmails(data);
+      setScheduledCount(scheduled.length);
+      setSentCount(sent.length);
     } catch (err) {
       console.error('Failed to load emails:', err);
-      showToast('Error syncing email data. Check console for details.', 'error');
     } finally {
       setIsLoadingEmails(false);
     }
-  }, []);
+  }, [activeTab, debouncedSearch, emails.length, user]);
 
-  // Fetch when tab or debounced search changes
+  // Live Sync: Fetch immediately + auto-poll every 3 seconds for live updates
   useEffect(() => {
-    if (user) {
-      const uId = user.id || user.googleId || user.email;
-      loadEmails(activeTab, debouncedSearch, uId);
-    }
-  }, [user, activeTab, debouncedSearch, loadEmails]);
+    if (!user) return;
+    loadEmails();
+    const timer = setInterval(() => loadEmails(), 3000);
+    return () => clearInterval(timer);
+  }, [user, loadEmails]);
 
   // Global Keyboard shortcut: 'C' to compose
   useEffect(() => {
