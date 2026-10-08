@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  name             String?
+  avatar           String?
+  googleId         String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  senders          Sender[]
+  emailJobs        EmailJob[]
+  slackIntegration SlackIntegration?
+}
+
+model Sender {
+  id              String     @id @default(uuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email           String
+  name            String?
+  etherealUser    String
+  etherealPass    String
+  minDelaySeconds Int        @default(2)
+  hourlyLimit     Int        @default(20)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  emailJobs       EmailJob[]
+}
+
+model EmailJob {
+  id             String    @id @default(uuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         Sender    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  recipientEmail String
+  subject        String
+  body           String
+  status         String    @default("PENDING") // PENDING, PROCESSING, SENT, RESCHEDULED, FAILED
+  scheduledAt    DateTime
+  sentAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model SlackIntegration {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken     String?
+  incomingWebhook String?
+  channelName     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
