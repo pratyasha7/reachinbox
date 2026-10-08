@@ -101,6 +101,18 @@ app.post('/api/emails/schedule', async (req, res) => {
       });
     }
 
+    // Update sender's hourly limit & delay with values from the Compose modal!
+    if (sender && (hourlyLimit || delayBetweenEmailsSec)) {
+      sender = await prisma.sender.update({
+        where: { id: sender.id },
+        data: {
+          hourlyLimit: Number(hourlyLimit) || sender.hourlyLimit,
+          minDelaySeconds: Number(delayBetweenEmailsSec) || sender.minDelaySeconds,
+        },
+      });
+      console.log(`[Rate Limit Config] Updated sender ${sender.email} limit to ${sender.hourlyLimit}/hr`);
+    }
+
     const start = scheduledStartTime ? new Date(scheduledStartTime).getTime() : Date.now();
     const delaySec = Number(delayBetweenEmailsSec) || sender.minDelaySeconds || 2;
     const step = delaySec * 1000;

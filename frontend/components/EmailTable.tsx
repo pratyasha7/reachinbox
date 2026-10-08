@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Calendar,
   Mail,
+  Plus,
   Copy,
   Check,
   Trash2,
@@ -82,7 +83,7 @@ export const EmailTable: React.FC<EmailTableProps> = ({
   // State 1: Loading State
   if (isLoading) {
     return (
-      <div className="bg-white/5 dark:bg-zinc-900/60 backdrop-blur-3xl border border-white/40 dark:border-zinc-800/40 shadow-xl rounded-2xl w-full overflow-hidden">
+      <div className="bg-white/85 dark:bg-zinc-900/60 backdrop-blur-xl border border-white/50 dark:border-zinc-800/40 shadow-xl rounded-2xl w-full overflow-hidden">
         <div className="p-8 flex flex-col items-center justify-center gap-4 text-center min-h-[340px]">
           <div className="relative">
             <div className="h-12 w-12 rounded-full border-3 border-blue-500/20 border-t-blue-600 animate-spin" />
@@ -113,7 +114,7 @@ export const EmailTable: React.FC<EmailTableProps> = ({
   // State 2: Empty State
   if (emails.length === 0) {
     return (
-      <div className="bg-white/5 dark:bg-zinc-900/60 backdrop-blur-3xl border border-white/40 dark:border-zinc-800/40 shadow-xl rounded-2xl w-full overflow-hidden p-12 text-center">
+      <div className="bg-white/70 dark:bg-zinc-900/60 backdrop-blur-xl border border-white/50 dark:border-zinc-800/40 shadow-xl rounded-2xl w-full overflow-hidden p-12 text-center">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10 text-zinc-500 dark:text-zinc-400 mb-4 shadow-xs">
           <Inbox className="w-7 h-7" />
         </div>
@@ -133,9 +134,9 @@ export const EmailTable: React.FC<EmailTableProps> = ({
         </p>
         <button
           onClick={onComposeClick}
-          className="inline-flex items-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 px-4.5 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:shadow-lg transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 rounded-xl bg-white/60 hover:bg-white/80 dark:bg-zinc-900/60 backdrop-blur-xl border-2 border-pink-400/80 hover:border-pink-500 px-4.5 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 shadow-md shadow-pink-500/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all cursor-pointer group"
         >
-          <Mail className="w-3.5 h-3.5" />
+          <Plus className="w-3.5 h-3.5 text-pink-600 dark:text-pink-400 transition-transform group-hover:rotate-90 duration-200" />
           <span>Compose New Email</span>
         </button>
       </div>

@@ -9,6 +9,7 @@ services:
     volumes:
       - redisdata:/data
     restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
 
   postgres:
     image: postgres:15-alpine

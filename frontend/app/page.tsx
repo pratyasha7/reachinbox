@@ -246,9 +246,9 @@ export default function OutreachDashboardPage() {
             <button
               type="button"
               onClick={() => setIsComposeOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-4.5 py-2.5 text-xs font-semibold text-white shadow-md shadow-blue-500/20 hover:shadow-lg transition-all cursor-pointer group"
+              className="inline-flex items-center gap-2 rounded-xl bg-white/60 hover:bg-white/80 dark:bg-zinc-900/60 backdrop-blur-xl border-2 border-pink-400/80 hover:border-pink-500 px-4.5 py-2.5 text-xs font-semibold text-zinc-900 dark:text-zinc-100 shadow-md shadow-pink-500/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all cursor-pointer group"
             >
-              <Plus className="w-4 h-4 transition-transform group-hover:rotate-90 duration-200" />
+              <Plus className="w-4 h-4 text-pink-600 dark:text-pink-400 transition-transform group-hover:rotate-90 duration-200" />
               <span>Compose Email</span>
             </button>
           </div>
