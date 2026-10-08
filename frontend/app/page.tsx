@@ -74,19 +74,18 @@ export default function OutreachDashboardPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Parallel fetch: supports custom parameters AND zero-argument calls for the timer!
+  // Load emails (silent by default so it NEVER flickers the screen during auto-refresh)
   const loadEmails = useCallback(async (
     tab: 'scheduled' | 'sent' = activeTab,
     search: string = debouncedSearch,
-    targetUserId?: string
+    showLoader = false
   ) => {
-    if (emails.length === 0) setIsLoadingEmails(true);
-    const uId = targetUserId || user?.id || user?.googleId || user?.email;
+    if (showLoader) setIsLoadingEmails(true);
     try {
       const [data, scheduled, sent] = await Promise.all([
-        api.getEmails(tab, search, uId),
-        api.getEmails('scheduled', undefined, uId),
-        api.getEmails('sent', undefined, uId),
+        api.getEmails(tab, search),
+        api.getEmails('scheduled'),
+        api.getEmails('sent'),
       ]);
       setEmails(data);
       setScheduledCount(scheduled.length);
@@ -94,17 +93,23 @@ export default function OutreachDashboardPage() {
     } catch (err) {
       console.error('Failed to load emails:', err);
     } finally {
-      setIsLoadingEmails(false);
+      if (showLoader) setIsLoadingEmails(false);
     }
-  }, [activeTab, debouncedSearch, emails.length, user]);
+  }, [activeTab, debouncedSearch]);
 
-  // Live Sync: Fetch immediately + auto-poll every 3 seconds for live updates
+  // Initial load shows loader once; 3-second timer is 100% silent!
   useEffect(() => {
     if (!user) return;
-    loadEmails();
-    const timer = setInterval(() => loadEmails(), 3000);
-    return () => clearInterval(timer);
-  }, [user, loadEmails]);
+    // 1. Initial load (shows loader once on entry)
+    loadEmails(activeTab, debouncedSearch, true);
+
+    // 2. Background polling every 3 seconds (completely silent, zero screen flash!)
+    const syncTimer = setInterval(() => {
+      loadEmails(activeTab, debouncedSearch, false);
+    }, 3000);
+
+    return () => clearInterval(syncTimer);
+  }, [user, activeTab, debouncedSearch, loadEmails]);
 
   // Global Keyboard shortcut: 'C' to compose
   useEffect(() => {
@@ -153,7 +158,7 @@ export default function OutreachDashboardPage() {
     const newItems = await api.scheduleEmails(values, uId);
     showToast(`Successfully scheduled ${newItems.length} outreach emails!`, 'success');
     // Reload scheduled list
-    await loadEmails('scheduled', debouncedSearch, uId);
+    await loadEmails('scheduled', debouncedSearch);
     setActiveTab('scheduled');
   };
 
@@ -161,7 +166,7 @@ export default function OutreachDashboardPage() {
     const uId = user?.id || user?.googleId || user?.email;
     await api.cancelEmail(id);
     showToast('Scheduled email cancelled.', 'info');
-    await loadEmails(activeTab, debouncedSearch, uId);
+    await loadEmails(activeTab, debouncedSearch);
   };
 
   // If still checking initial authentication

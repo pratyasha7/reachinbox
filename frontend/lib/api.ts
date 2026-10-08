@@ -259,11 +259,10 @@ export const api = {
    * Cancel or delete a scheduled email
    */
   async cancelEmail(id: string): Promise<boolean> {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    const existing = getStored<EmailItem[]>(STORAGE_KEY_SCHEDULED, INITIAL_SCHEDULED);
-    const updated = existing.filter((item) => item.id !== id);
-    setStored(STORAGE_KEY_SCHEDULED, updated);
-    return true;
+    const res = await fetch(`http://localhost:5000/api/emails/${id}`, {
+      method: 'DELETE',
+    });
+    return res.ok;
   },
 
   /**

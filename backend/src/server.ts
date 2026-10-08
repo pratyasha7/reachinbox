@@ -271,6 +271,26 @@ app.get('/api/slack/status', async (req, res) => {
   }
 });
 
+// Cancel / Delete Scheduled Email API
+app.delete('/api/emails/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Delete from PostgreSQL database
+    await prisma.emailJob.delete({ where: { id } }).catch(() => null);
+
+    // 2. Remove delayed job from BullMQ queue so it never sends
+    const job = await emailQueue.getJob(id);
+    if (job) await job.remove();
+
+    console.log(`[Scheduler] Cancelled and deleted job ${id}`);
+    return res.json({ success: true, message: 'Email cancelled' });
+  } catch (err: any) {
+    console.error('Delete email error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
