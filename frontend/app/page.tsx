@@ -25,7 +25,6 @@ export default function OutreachDashboardPage() {
   // Tabs & Filters (Piece 3)
   const [activeTab, setActiveTab] = useState<'scheduled' | 'sent'>('scheduled');
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // Data & Tables (Piece 4)
   const [emails, setEmails] = useState<EmailItem[]>([]);
@@ -78,24 +77,11 @@ export default function OutreachDashboardPage() {
     setIsAuthChecking(false);
   }, []);
 
-  // Search input debouncer (simulating real-time Elasticsearch search query)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Load emails (silent by default so it NEVER flickers the screen during auto-refresh)
-  const loadEmails = useCallback(async (
-    tab: 'scheduled' | 'sent' = activeTab,
-    search: string = debouncedSearch,
-    showLoader = false
-  ) => {
-    if (showLoader) setIsLoadingEmails(true);
+  // Stable background sync (always fetches the current tab's emails without network collisions)
+  const loadEmails = useCallback(async (tab: 'scheduled' | 'sent' = activeTab) => {
     try {
       const [data, scheduled, sent] = await Promise.all([
-        api.getEmails(tab, search),
+        api.getEmails(tab),
         api.getEmails('scheduled'),
         api.getEmails('sent'),
       ]);
@@ -105,23 +91,16 @@ export default function OutreachDashboardPage() {
     } catch (err) {
       console.error('Failed to load emails:', err);
     } finally {
-      if (showLoader) setIsLoadingEmails(false);
+      setIsLoadingEmails(false);
     }
-  }, [activeTab, debouncedSearch]);
+  }, [activeTab]);
 
-  // Initial load shows loader once; 3-second timer is 100% silent!
   useEffect(() => {
     if (!user) return;
-    // 1. Initial load (shows loader once on entry)
-    loadEmails(activeTab, debouncedSearch, true);
-
-    // 2. Background polling every 3 seconds (completely silent, zero screen flash!)
-    const syncTimer = setInterval(() => {
-      loadEmails(activeTab, debouncedSearch, false);
-    }, 3000);
-
+    loadEmails(activeTab);
+    const syncTimer = setInterval(() => loadEmails(activeTab), 3000);
     return () => clearInterval(syncTimer);
-  }, [user, activeTab, debouncedSearch, loadEmails]);
+  }, [user, activeTab, loadEmails]);
 
   // Global Keyboard shortcut: 'C' to compose
   useEffect(() => {
@@ -175,7 +154,7 @@ export default function OutreachDashboardPage() {
     const newItems = await api.scheduleEmails(values, uId);
     showToast(`Successfully scheduled ${newItems.length} outreach emails!`, 'success');
     // Reload scheduled list
-    await loadEmails('scheduled', debouncedSearch);
+    await loadEmails('scheduled');
     setActiveTab('scheduled');
   };
 
@@ -183,7 +162,7 @@ export default function OutreachDashboardPage() {
     const uId = user?.id || user?.googleId || user?.email;
     await api.cancelEmail(id);
     showToast('Scheduled email cancelled.', 'info');
-    await loadEmails(activeTab, debouncedSearch);
+    await loadEmails(activeTab);
   };
 
   // If still checking initial authentication
@@ -202,6 +181,18 @@ export default function OutreachDashboardPage() {
   if (!user) {
     return <LoginCard onLoginSuccess={handleLoginSuccess} />;
   }
+
+  // ⚡ Instant 0ms Filter: Filters matching recipient, subject, or body in memory!
+  const displayedEmails = emails.filter((item) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      item.recipient?.toLowerCase().includes(q) ||
+      item.recipientName?.toLowerCase().includes(q) ||
+      item.subject?.toLowerCase().includes(q) ||
+      item.body?.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="min-h-screen flex flex-col relative text-zinc-900 dark:text-zinc-100">
@@ -399,10 +390,10 @@ export default function OutreachDashboardPage() {
 
         {/* Piece 4: Email Table (with Loading, Empty, Data states) */}
         <EmailTable
-          emails={emails}
+          emails={displayedEmails}
           isLoading={isLoadingEmails}
           activeTab={activeTab}
-          searchQuery={debouncedSearch}
+          searchQuery={searchQuery}
           onComposeClick={() => setIsComposeOpen(true)}
           onCancelEmail={handleCancelEmail}
         />
