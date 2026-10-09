@@ -21,8 +21,10 @@ export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
       client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
       callback: async (response: any) => {
         try {
-          // Send the real Google token to our Express backend
-          const res = await fetch('http://localhost:5000/api/auth/google', {
+          // Use live cloud Render backend when deployed, fallback to localhost for dev
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+          
+          const res = await fetch(`${API_BASE}/auth/google`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ credential: response.credential }),
