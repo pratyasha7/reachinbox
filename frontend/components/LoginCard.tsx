@@ -12,17 +12,17 @@ interface LoginCardProps {
 }
 
 export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
-  // Initialize official Google Identity Services button
+  
   const initializeGoogleAuth = () => {
     if (typeof window === 'undefined' || !(window as any).google) return;
 
     (window as any).google.accounts.id.initialize({
-      // Your Google Client ID from Google Cloud Console
+
       client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
       callback: async (response: any) => {
         try {
-          // Use live cloud Render backend when deployed, fallback to localhost for dev
-          const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+          
+          const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://reachinbox-fi3j.onrender.com/api';
           
           const res = await fetch(`${API_BASE}/auth/google`, {
             method: 'POST',
@@ -33,17 +33,17 @@ export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
           if (!res.ok) throw new Error('Backend failed to verify Google token');
 
           const data = await res.json();
-          // Log in with the real user from Google!
+          
           onLoginSuccess(data.user);
         } catch (err) {
           console.error('Google login failed:', err);
-          // Fallback if backend is not running yet during testing
+         
           alert('Could not connect to backend to verify Google token.');
         }
       },
     });
 
-    // Render the authentic Google button inside the #googleSignInDiv element
+   
     (window as any).google.accounts.id.renderButton(
       document.getElementById('googleSignInDiv'),
       { theme: 'outline', size: 'large', width: 340, shape: 'pill' }
