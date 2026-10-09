@@ -1,4 +1,5 @@
-# ReachInbox — Cold Email Outreach & Staggered Dispatcher ( https://reachinbox-delta-three.vercel.app )
+# ReachInbox — Cold Email Outreach & Staggered Dispatcher 
+( https://reachinbox-delta-three.vercel.app )
 
 A high-throughput, automated cold email outreach and staggered sequence dispatching system built with **Next.js 16 (App Router)**, **TypeScript**, **Node.js / Express**, **BullMQ**, **Redis**, **Prisma ORM**, **Elasticsearch**, and **Ethereal Nodemailer**.
 
