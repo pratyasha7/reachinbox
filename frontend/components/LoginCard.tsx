@@ -63,7 +63,7 @@ export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
         onLoad={initializeGoogleAuth}
       />
 
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-zinc-50 via-zinc-100 to-zinc-200 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-pink-50 via-rose-50 to-pink-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
         <div className="w-full max-w-md">
           <div className="rounded-3xl border border-zinc-200/80 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 shadow-2xl backdrop-blur-xl p-8 sm:p-10 relative overflow-hidden">
             
