@@ -138,7 +138,7 @@ function setStored<T>(key: string, val: T): void {
   }
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://reachinbox-fi3j.onrender.com/api';
 
 // API methods configured to call backend or fallback to state
 export const api = {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { UserProfile } from '@/types/email';
 import { DEFAULT_USER } from '@/lib/api';
@@ -12,6 +12,8 @@ interface LoginCardProps {
 }
 
 export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   
   const initializeGoogleAuth = () => {
     if (typeof window === 'undefined' || !(window as any).google) return;
@@ -20,25 +22,44 @@ export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
       client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
       auto_select: false,
       callback: async (response: any) => {
-        try {
-          
-          const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://reachinbox-fi3j.onrender.com/api';
-          
-          const res = await fetch(`${API_BASE}/auth/google`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ credential: response.credential }),
-          });
+        setIsVerifying(true);
+        setStatusMessage('Verifying credentials...');
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://reachinbox-fi3j.onrender.com/api';
+        
+        const maxRetries = 3;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            if (attempt > 1) {
+              setStatusMessage(`Waking up server (attempt ${attempt} of ${maxRetries})...`);
+            }
 
-          if (!res.ok) throw new Error('Backend failed to verify Google token');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-          const data = await res.json();
-          
-          onLoginSuccess(data.user);
-        } catch (err) {
-          console.error('Google login failed:', err);
-         
-          alert('Could not connect to backend to verify Google token.');
+            const res = await fetch(`${API_BASE}/auth/google`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ credential: response.credential }),
+              signal: controller.signal,
+            });
+            clearTimeout(timeoutId);
+
+            if (!res.ok) {
+              throw new Error(`Server returned status ${res.status}`);
+            }
+
+            const data = await res.json();
+            onLoginSuccess(data.user);
+            return;
+          } catch (err: any) {
+            console.warn(`[Google Auth] Attempt ${attempt} failed:`, err.message || err);
+            if (attempt === maxRetries) {
+              setIsVerifying(false);
+              alert('Could not connect to backend to verify Google token. Please try again.');
+            } else {
+              await new Promise((r) => setTimeout(r, 2500));
+            }
+          }
         }
       },
     });
@@ -100,17 +121,31 @@ export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
 
             {/* Official Google Sign-In Button Container */}
             <div className="space-y-4 flex flex-col items-center">
-              <div id="googleSignInDiv" className="min-h-[44px] flex justify-center" />
+              {isVerifying && (
+                <div className="flex flex-col items-center justify-center py-2 space-y-2 text-center">
+                  <div className="h-6 w-6 rounded-full border-2 border-blue-600/30 border-t-blue-600 animate-spin" />
+                  <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                    {statusMessage || 'Verifying credentials...'}
+                  </p>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500 max-w-xs">
+                    Please wait while the cloud server wakes up and logs you in.
+                  </p>
+                </div>
+              )}
+
+              <div id="googleSignInDiv" className={isVerifying ? 'hidden' : 'min-h-[44px] flex justify-center'} />
 
               {/* Demo fallback link */}
-              <button
-                type="button"
-                onClick={() => onLoginSuccess(DEFAULT_USER)}
-                className="text-xs text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1"
-              >
-                <span>Quick start as John Doe (Demo)</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
+              {!isVerifying && (
+                <button
+                  type="button"
+                  onClick={() => onLoginSuccess(DEFAULT_USER)}
+                  className="text-xs text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center gap-1"
+                >
+                  <span>Quick start as John Doe (Demo)</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              )}
             </div>
 
             {/* Feature Pills */}
