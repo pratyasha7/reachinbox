@@ -17,8 +17,8 @@ export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
     if (typeof window === 'undefined' || !(window as any).google) return;
 
     (window as any).google.accounts.id.initialize({
-
       client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+      auto_select: false,
       callback: async (response: any) => {
         try {
           
@@ -46,7 +46,13 @@ export const LoginCard: React.FC<LoginCardProps> = ({ onLoginSuccess }) => {
    
     (window as any).google.accounts.id.renderButton(
       document.getElementById('googleSignInDiv'),
-      { theme: 'outline', size: 'large', width: 340, shape: 'pill' }
+      {
+        theme: 'outline',
+        size: 'medium',
+        text: 'signin_with',
+        shape: 'pill',
+        width: 300,
+      }
     );
   };
 
